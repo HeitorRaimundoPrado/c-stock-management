@@ -58,8 +58,11 @@ int main(int argc, char *argv[]){
     bool q = false;
     while (!q) {
         int opt;
-        printf("Usage:\n1. Update\n2. Delete\n3. Add\n4. Get\n5. Quit\n");
-        scanf("%d", &opt);
+        printf("\nUsage:\n1. Update\n2. Delete\n3. Add\n4. Get\n5. Quit\n\n");
+        // scanf("%d", &opt);
+        char optStr[100];
+        fgets(optStr, 100, stdin);
+        sscanf(optStr, "%d", &opt);
         switch(opt) {
             case 1:
             {
@@ -82,20 +85,26 @@ int main(int argc, char *argv[]){
             case 3:
             {
                 // for each attribute get new value
-                char *newAttr = strtok(attributes, ",");
+                char *attributesCopy = malloc(strlen(attributes)+1);
+                strcpy(attributesCopy, attributes);
+                char *newAttr = strtok(attributesCopy, ",");
                 char value[100];
+                FILE *writePointer = fopen(pathToCsv, "a");
                 while (newAttr != NULL) {
                     printf("%s: ", newAttr);
-                    stockManagementSet(newAttr, value);
+                    stockManagementSet(value, writePointer);
                     newAttr = strtok(NULL, ",");
                 }
+                fclose(writePointer);
+                free(attributesCopy);
                 break;
             }
             case 4:
             {
-                int productIndex;
-                char output[100];
-                scanf("%d", &productIndex);
+                char output[100], productIndex[100];
+                // scanf("%d", &productIndex);
+                printf("Product Index: ");
+                fgets(productIndex, 100, stdin);
                 stockManagementGet(productIndex, output, 100, data, lengthOfData);
                 puts(output);
                 break;
