@@ -8,6 +8,6 @@
 void stockManagementUpdate(int, char*, char*);
 void stockManagementDelete(int);
 void stockManagementSet(char*, char*);
-void stockManagementGet(int, char*, int, char*);
+void stockManagementGet(int, char*, int, char*, int);
 
 #endif

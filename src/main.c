@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #include "manage.h"
 
 int main(int argc, char *argv[]){
@@ -12,7 +13,16 @@ int main(int argc, char *argv[]){
     strcpy(pathToCsv, argv[1]);
     FILE *readPointer = fopen(pathToCsv, "r");
     
+    if (readPointer == NULL) {
+        fprintf(stderr, "Unable to open file!\n");
+        exit(1);
+    }
+
     char *data = (char *) malloc(50 * sizeof(char));
+    if (data == NULL) {
+        fprintf(stderr, "Out of memory!\n");
+        exit(1);
+    }
     char c;
     unsigned long long i = 0, sizeOfData = 50;
     while (1) {
@@ -26,6 +36,10 @@ int main(int argc, char *argv[]){
         }
         else {
             data = (char*)realloc(data, sizeOfData*2*sizeof(char));
+            if (data == NULL){
+                fprintf(stderr, "Out of memory!\n");
+                exit(1);
+            }
             sizeOfData*=2;
             data[i] = c;
             i++;
@@ -33,10 +47,18 @@ int main(int argc, char *argv[]){
     }
     fclose(readPointer);
     data[i] = '\0';
-    char *attributes = strtok(data, "\n");
-
-    while (1) {
+    int lengthOfData = i;
+    char *attr = malloc(i*sizeof(char)+1);
+    if (attr == NULL){
+        fprintf(stderr, "Out of memory!\n");
+        exit(1);
+    }
+    strcpy(attr, data);
+    char *attributes = strtok(attr, "\n");
+    bool q = false;
+    while (!q) {
         int opt;
+        printf("Usage:\n1. Update\n2. Delete\n3. Add\n4. Get\n5. Quit\n");
         scanf("%d", &opt);
         switch(opt) {
             case 1:
@@ -60,23 +82,31 @@ int main(int argc, char *argv[]){
             case 3:
             {
                 // for each attribute get new value
-                char *attr = strtok(attributes, ",");
+                char *newAttr = strtok(attributes, ",");
                 char value[100];
-                while (attr != NULL) {
-                    printf("%s: ", attr);
-                    stockManagementSet(attr, value);
-                    attr = strtok(NULL, ",");
+                while (newAttr != NULL) {
+                    printf("%s: ", newAttr);
+                    stockManagementSet(newAttr, value);
+                    newAttr = strtok(NULL, ",");
                 }
+                break;
             }
             case 4:
             {
                 int productIndex;
                 char output[100];
                 scanf("%d", &productIndex);
-                stockManagementGet(productIndex, output, 100,data);
+                stockManagementGet(productIndex, output, 100, data, lengthOfData);
                 puts(output);
+                break;
+            }
+            case 5:
+            {
+                q = true;
+                break;
             }
         }
     }
+    free(attributes);
     free(data);
 }
