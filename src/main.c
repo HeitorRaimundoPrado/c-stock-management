@@ -29,10 +29,10 @@ int main(int argc, char *argv[]){
     bool q = false;
     while (!q) {
         int opt;
-        printf("\nUsage:\n1. Update\n2. Delete\n3. Add\n4. Get\n5. Quit\n\n");
+        printf("\nUsage:\n1. Update\n2. Delete\n3. Add\n4. Get\n5. Trade\n6. Quit.\n\n");
         // scanf("%d", &opt);
-        char optStr[100];
-        fgets(optStr, 100, stdin);
+        char optStr[10];
+        fgets(optStr, 10, stdin);
         sscanf(optStr, "%d", &opt);
         switch(opt) {
             case 1:
@@ -47,9 +47,11 @@ int main(int argc, char *argv[]){
             }
             case 2:
             {
-                int productIndex;
-                scanf("%d", &productIndex);
-                stockManagementDelete(productIndex);
+                char productIndex[10];
+                printf("Product index: ");
+                fgets(productIndex, 10, stdin);
+                stockManagementDelete(productIndex, sizeOfData, data, pathToCsv);
+                stockManagementRead(pathToCsv, &data, &lengthOfData, &sizeOfData);
                 break;
                 
             }
@@ -76,7 +78,6 @@ int main(int argc, char *argv[]){
             case 4:
             {
                 char output[100], productIndex[100];
-                // scanf("%d", &productIndex);
                 printf("Product Index: ");
                 fgets(productIndex, 100, stdin);
                 stockManagementGet(productIndex, output, 100, data, lengthOfData);
@@ -85,6 +86,22 @@ int main(int argc, char *argv[]){
             }
             case 5:
             {
+                char tradeOptStr[10];
+                int tradeOpt, quantity, productIndex;
+                printf("\n1. Sale\n2. Purchase\n");
+                fgets(tradeOptStr, 10, stdin);
+                sscanf(tradeOptStr, "%d", &tradeOpt);
+                printf("\nProduct Index: ");
+                fgets(tradeOptStr, 10, stdin);
+                sscanf(tradeOptStr, "%d", &productIndex);
+                printf("Quantity: ");
+                fgets(tradeOptStr, 10, stdin);
+                sscanf(tradeOptStr, "%d", &quantity);
+                stockManagementTrade(tradeOpt, quantity, productIndex);
+
+            }
+            case 6:
+            {
                 q = true;
                 break;
             }
@@ -92,4 +109,5 @@ int main(int argc, char *argv[]){
     }
     free(attributes);
     free(data);
+    return 0;
 }
