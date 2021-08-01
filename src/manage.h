@@ -6,6 +6,7 @@
 #include <string.h>
 #include <stdbool.h>
 
+void stockManagementRead(char*, char**, unsigned long long*, unsigned long long*);
 void stockManagementUpdate(int, char*, char*);
 void stockManagementDelete(int);
 void stockManagementSet(char*, FILE*);

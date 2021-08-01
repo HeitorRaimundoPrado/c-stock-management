@@ -4,6 +4,7 @@ project(c-stock-manager)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
+set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 
 add_executable(stock_manager src/main.c src/manage.h src/manage.c)
 

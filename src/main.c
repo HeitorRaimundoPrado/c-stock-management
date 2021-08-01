@@ -11,44 +11,15 @@ int main(int argc, char *argv[]){
     }
     char pathToCsv[50];
     strcpy(pathToCsv, argv[1]);
-    FILE *readPointer = fopen(pathToCsv, "r");
-    
-    if (readPointer == NULL) {
-        fprintf(stderr, "Unable to open file!\n");
-        exit(1);
-    }
-
     char *data = (char *) malloc(50 * sizeof(char));
     if (data == NULL) {
         fprintf(stderr, "Out of memory!\n");
         exit(1);
     }
-    char c;
-    unsigned long long i = 0, sizeOfData = 50;
-    while (1) {
-        c = fgetc(readPointer);
-        if (feof(readPointer)) {
-            break;
-        }
-        if (i < sizeOfData-1) {
-            data[i] = c;
-            i++;
-        }
-        else {
-            data = (char*)realloc(data, sizeOfData*2*sizeof(char));
-            if (data == NULL){
-                fprintf(stderr, "Out of memory!\n");
-                exit(1);
-            }
-            sizeOfData*=2;
-            data[i] = c;
-            i++;
-        }
-    }
-    fclose(readPointer);
-    data[i] = '\0';
-    int lengthOfData = i;
-    char *attr = malloc(i*sizeof(char)+1);
+    unsigned long long lengthOfData = 0;
+    unsigned long long sizeOfData = 50;
+    stockManagementRead(pathToCsv, &data, &lengthOfData, &sizeOfData);
+    char *attr = malloc(lengthOfData*sizeof(char)+1);
     if (attr == NULL){
         fprintf(stderr, "Out of memory!\n");
         exit(1);
@@ -92,11 +63,14 @@ int main(int argc, char *argv[]){
                 FILE *writePointer = fopen(pathToCsv, "a");
                 while (newAttr != NULL) {
                     printf("%s: ", newAttr);
+                    fgets(value, 100, stdin);
                     stockManagementSet(value, writePointer);
                     newAttr = strtok(NULL, ",");
                 }
+                putc('\n', writePointer);
                 fclose(writePointer);
                 free(attributesCopy);
+                stockManagementRead(pathToCsv, &data, &lengthOfData, &sizeOfData);
                 break;
             }
             case 4:
