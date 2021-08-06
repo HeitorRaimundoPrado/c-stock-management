@@ -1,6 +1,11 @@
 #include "manage.h"
 
-void stockManagementTrade(int opt, int quantity, int productIndex) {
+void stockManagementTrade(int opt, int quantity, char* productIndex) {
+    if (opt == 1) {
+    }
+    else {
+        
+    }
     return;
 }
 
@@ -20,10 +25,11 @@ void stockManagementRead(char* pathToFile, char **data, unsigned long long *i, u
         if (feof(readPointer)) {
             break;
         }
+
         if ((*i) < (*sizeOfData)-1) {
             (*data)[(*i)] = c;
-            (*i)++;
         }
+
         else {
             *data = (char*)realloc(*data, (*sizeOfData)*2*sizeof(char));
             if (*data == NULL){
@@ -32,73 +38,123 @@ void stockManagementRead(char* pathToFile, char **data, unsigned long long *i, u
             }
             (*sizeOfData)*=2;
             (*data)[(*i)] = c;
-            (*i)++;
         }
+        (*i)++;
     }
     fclose(readPointer);
     (*data)[(*i)] = '\0';
 }
 
-void stockManagementUpdate(int productIndex, char* attr, char* newValue) {
-    return;
+void stockManagementUpdate(char* productIndex, char* attr, char* newValue, char* allAttributes, char* data, char* pathToFile) {
+    char *attrCopy = malloc(strlen(allAttributes));
+    if (attrCopy == NULL) {
+        fprintf(stderr, "Out of memory\n");
+        exit(1);
+    }
+
+    strcpy(attrCopy, allAttributes);
+    char *currAttr = strtok(attrCopy, ",");
+    int indexOfAttr = 0;
+
+    while (currAttr != NULL && strcmp(currAttr, attr) != 0) {
+        currAttr = strtok(NULL, ",");
+        indexOfAttr++;
+    }
+
+    if (currAttr == NULL) {
+        fprintf(stderr, "Attribute inexistent\n");
+        return;
+    }
+
+    char *toWrite = calloc(strlen(data)+strlen(newValue)+40, sizeof(char));
+    char *row = strtok(data, "\n");
+    bool wroteNewValue = false;
+
+    while (row != NULL){
+        if (strlen(productIndex) == strcspn(row, ",") && strncmp(productIndex, row, strcspn(row, ",")) == 0){
+            int currAttr = 0;
+
+            for(unsigned long i = 0; i < strlen(row); i++) {
+                if (row[i] == ',' ) {
+                    currAttr++;
+                }
+                if (currAttr == indexOfAttr && !wroteNewValue) {
+                    strcat(toWrite, ",");
+                    strcat(toWrite, newValue);
+                    wroteNewValue = true;
+                }
+                else if (currAttr != indexOfAttr) {
+                    strncat(toWrite, &row[i], 1);
+                }
+            }
+
+            strcat(toWrite, "\n");
+            row = strtok(NULL, "\n");
+            continue;
+        }
+
+        else {
+            strcat(toWrite, row);
+            strcat(toWrite, "\n");
+        }
+        row = strtok(NULL, "\n");
+    }
+
+    if (!wroteNewValue) {
+        fprintf(stderr, "Index inexistent!\n");
+        free(toWrite);
+        return;
+    }
+
+    FILE *writePointer = fopen(pathToFile, "w");
+    if (writePointer == NULL) {
+        fprintf(stderr, "Unable to open file!\n");
+        free(toWrite);
+        exit(1);
+    }
+    fputs(toWrite, writePointer);
+    fclose(writePointer);
+    free(toWrite);
 }
-void stockManagementDelete(char *productIndex, unsigned long long sizeOfData, char *data, char *pathToFile) {
-   if (productIndex < 0) {
+
+void stockManagementDelete(char *productIndex, char *data, char *pathToFile) {
+   if (atoi(productIndex) < 0) {
        fprintf(stderr, "Invalid index\n");
        return;
    }
-   char *dataCopy = malloc(sizeOfData*sizeof(char)+1);
-   if (dataCopy == NULL) {
-       fprintf(stderr, "Out of memory!\n");
-       exit(1);
-   }
-   strcpy(dataCopy, data);
-   char *row = strtok(dataCopy, "\n");
-   unsigned long lengthOfIndex = strlen(productIndex)-1;
+
    char *toWrite = calloc(strlen(data)+1, sizeof(char));
+   char *row = strtok(data, "\n");
    if (toWrite == NULL) {
        fprintf(stderr, "Out of memory!\n");
        exit(1);
    }
+
    bool indexExistent = false;
    while (row != NULL){
-       int currentIndexLength = strcspn(row, ",");
-       bool currentIsIndex = true;
-       if (currentIndexLength != lengthOfIndex) {
-           currentIsIndex = false;
-       }
-       else {
-           for (int i = 0; i < currentIndexLength; i++){
-               if (row[i] != productIndex[i]) {
-                   currentIsIndex = false;
-                   break;
-               }
-           }
-       }
-       if (currentIsIndex){
+       if (strlen(productIndex)-1 == strcspn(row, ",") && strncmp(productIndex, row, strcspn(row, ",")) == 0){
            indexExistent = true;
            row = strtok(NULL, "\n");
            continue;
        }
        strcat(toWrite, row);
        strcat(toWrite, "\n");
-//       puts("\ntoWrite: ");
-//       puts(toWrite);
-
        row = strtok(NULL, "\n");
    }
-   if (!indexExistent) {
+
+   if (indexExistent == false) {
        fprintf(stderr, "Index inexistent\n");
        free(toWrite);
-       free(dataCopy);
        return;
    }
-   FILE *writePointer = fopen(pathToFile, "w");
-   fputs(toWrite, writePointer);
-   fclose(writePointer);
-   free(dataCopy);
+
+   FILE * wP = fopen(pathToFile, "w+");
+   fputs(toWrite, wP);
    free(toWrite);
+   fclose(wP);
+   return;
 }
+
 void stockManagementSet(char* newValue, FILE* writePointer) {
     for (int i = 0; newValue[i] != '\0'; i++){
         if (newValue[i] != '\n'){
@@ -108,42 +164,35 @@ void stockManagementSet(char* newValue, FILE* writePointer) {
     putc(',', writePointer);
     return;
 }
-void stockManagementGet(char* index, char* out, int lengthOut, char* data, int sizeOfData){
-   if (index < 0) {
+
+void stockManagementGet(char* index, char* out, unsigned long lengthOut, char* data, int sizeOfData){
+   if (atoi(index) < 0) {
        strcpy(out, "Invalid index");
        return;
    }
+
    char *dataCopy = malloc(sizeOfData*sizeof(char)+1);
+
    if (dataCopy == NULL) {
        fprintf(stderr, "Out of memory!\n");
        exit(1);
    }
+
    strcpy(dataCopy, data);
    char *row = strtok(dataCopy, "\n");
-   unsigned long lengthOfIndex = strlen(index)-1;
+
    while (row != NULL){
-       int currentIndexLength = strcspn(row, ",");
-       bool currentIsIndex = true;
-       if (currentIndexLength != lengthOfIndex) {
-           currentIsIndex = false;
-       }
-       else {
-           for (int i = 0; i < currentIndexLength; i++){
-               if (row[i] != index[i]) {
-                   currentIsIndex = false;
-                   break;
-               }
-           }
-       }
-       if (currentIsIndex){
+       if (strlen(index)-1 == strcspn(row, ",") && strncmp(index, row, strcspn(row, ",")) == 0){ 
            break;
        }
        row = strtok(NULL, "\n");
    }
+
    if (row == NULL) {
        strcpy(out, "Index inexistent");
        return;
    }
+
    if (strlen(row) < lengthOut){
        strcpy(out, row);
    }
