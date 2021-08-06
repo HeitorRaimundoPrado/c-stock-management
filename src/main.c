@@ -2,20 +2,43 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <time.h>
 #include "manage.h"
+#include "log.h"
 #include "csmconfig.h"
+
+
+#ifndef C_STOCK_MANAGER_BUILD_TYPE
+#define C_STOCK_MANAGER_BUILD_TYPE "Release"
+#endif
+
+#ifndef LOG_FILE_PATH
+#define LOG_FILE_PATH ""
+#endif
+
+#define NUM_OF_CONFIGS 2
 
 int main(int argc, char *argv[]) {
     // Read config file:
     char pathToCsv[50] = {0}, pathToTradesRegister[50] = {0};
-    char ** configOptions = malloc(2 * sizeof(char*));
+    char ** configOptions = malloc(NUM_OF_CONFIGS * sizeof(char*));
     if (configOptions == NULL) {
         fprintf(stderr, "Out of memory!!\n");
         exit(1);
     }
 
     readConfigFile("csm.cfg", &configOptions);
-
+    if(strcmp(C_STOCK_MANAGER_BUILD_TYPE, "Debug") == 0){
+        char allConfigs[1500] = {0};
+        char currConfig[100];
+        for (int i = 0; i < NUM_OF_CONFIGS; i++) {
+            sprintf(currConfig, "config[%d] = ", i);
+            strcat(allConfigs, currConfig);
+            strcat(allConfigs, configOptions[i]);
+            strcat(allConfigs, "\n");
+        }
+        csmLog(allConfigs, NULL, __FILE__, __LINE__);
+    }
     if (strcmp(configOptions[0], "") != 0) {
         strcpy(pathToCsv, configOptions[0]);
     }
@@ -58,6 +81,11 @@ int main(int argc, char *argv[]) {
     char *attributes = strtok(attr, "\n");
     bool q = false;
     while (!q) {
+
+        if (strcmp(C_STOCK_MANAGER_BUILD_TYPE, "Debug") == 0) { 
+            csmLog(data, "Data read from file: ", __FILE__, __LINE__);
+        }
+
         int opt;
         printf("\nUsage:\n1. Update\n2. Delete\n3. Add\n4. Get\n5. Trade\n6. Quit.\n\n");
         char optStr[10];
