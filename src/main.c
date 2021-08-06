@@ -19,6 +19,7 @@
 #define NUM_OF_CONFIGS 2
 
 int main(int argc, char *argv[]) {
+    enum main_opt {update=1, delete, add, get, trade, quit};
     // Read config file:
     char pathToCsv[50] = {0}, pathToTradesRegister[50] = {0};
     char ** configOptions = malloc(NUM_OF_CONFIGS * sizeof(char*));
@@ -92,7 +93,7 @@ int main(int argc, char *argv[]) {
         fgets(optStr, 10, stdin);
         sscanf(optStr, "%d", &opt);
         switch(opt) {
-            case 1:
+            case update:
             {
                 // int productIndex;
                 char newValue[100], atribute[100], productIndex[10];
@@ -115,7 +116,7 @@ int main(int argc, char *argv[]) {
                 break;
             }
 
-            case 2:
+            case delete:
             {
                 char productIndex[10];
                 printf("Product index: ");
@@ -129,7 +130,7 @@ int main(int argc, char *argv[]) {
                 
             }
 
-            case 3:
+            case add:
             {
                 // for each attribute get new value
                 char *attributesCopy = malloc(strlen(attributes)+1);
@@ -156,7 +157,7 @@ int main(int argc, char *argv[]) {
                 break;
             }
 
-            case 4:
+            case get:
             {
                 char output[100], productIndex[100];
 
@@ -168,7 +169,7 @@ int main(int argc, char *argv[]) {
                 break;
             }
 
-            case 5:
+            case trade:
             {
                 char productIndex[10];
                 int tradeOpt, quantity;
@@ -189,7 +190,7 @@ int main(int argc, char *argv[]) {
 
             }
 
-            case 6:
+            case quit:
             {
                 q = true;
                 break;
