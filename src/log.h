@@ -5,6 +5,9 @@
 #include <time.h>
 #include <stdlib.h>
 
+/*
+ * Function to log toWrite to debug.log file automatically
+ */
 void csmLog(char *toWrite, char* desc, char* file, int line);
 
 #endif
