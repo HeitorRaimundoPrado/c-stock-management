@@ -1,12 +1,119 @@
 #include "manage.h"
+#include "log.h"
 
-void stockManagementTrade(int opt, int quantity, char* productIndex) {
-    if (opt == 1) {
+#ifndef C_STOCK_MANAGER_BUILD_TYPE
+#define C_STOCK_MANAGER_BUILD_TYPE "Release"
+#endif
+
+void stockManagementTrade(int opt, int quantity, char* productIndex, char* pathToRegister, char* pathToStockFile, char* data, int sizeOfData) {
+    enum tradeOptions {sale=1, purchase};
+    char row[100];
+    char *dataCopy = malloc(strlen(data)*sizeof(char));
+    if (dataCopy == NULL) {
+        fprintf(stderr, "Out of memory\n");
+        exit(1);
+    }
+
+    strcpy(dataCopy, data);
+    stockManagementGet(productIndex, row, 100, data, sizeOfData);
+
+    char *allAttr = strtok(dataCopy, "\n");
+    char allAttrCopy[100];
+    strcpy(allAttrCopy, allAttr);
+
+    char *attr = strtok(allAttr, ",");
+    int indexOfQuantity, indexOfPrice, TotalQuantity = 0, i = 0;
+    double price;
+    while (attr != NULL) {
+        if (strcmp(C_STOCK_MANAGER_BUILD_TYPE, "Debug") == 0){
+            csmLog(attr, "attr", __FILE__, __LINE__);
+        }
+
+        if(strcmp(attr, "Quantity") == 0) {
+            indexOfQuantity = i;
+        }
+        else if(strcmp(attr, "Price") == 0) {
+            indexOfPrice = i;
+        }
+        attr = strtok(NULL, ",");
+        i++;
+    }
+    if (strcmp(C_STOCK_MANAGER_BUILD_TYPE, "Debug") == 0) {
+        char iAsStr[30];
+        sprintf(iAsStr, "%d", indexOfPrice);
+        csmLog(iAsStr, "indexOfPrice:", __FILE__, __LINE__);
+        sprintf(iAsStr, "%d", indexOfQuantity);
+        csmLog(iAsStr, "indexOfQuantity:", __FILE__, __LINE__);
+    }
+
+    char *val = strtok(row, ",");
+    i = 0;
+    while(val != NULL) {
+        if(strcmp(C_STOCK_MANAGER_BUILD_TYPE, "Debug") == 0) {
+            csmLog(val, "VAl", __FILE__, __LINE__);
+        }
+        if (i == indexOfPrice) {
+            if (strcmp(C_STOCK_MANAGER_BUILD_TYPE, "Debug") == 0) {
+                csmLog(val, "VAL FOR PRICE", __FILE__, __LINE__);
+            }
+            sscanf(val, "%lf", &price);
+        }
+        else if (i == indexOfQuantity) {
+            if(strcmp(C_STOCK_MANAGER_BUILD_TYPE, "Debug") == 0) {
+                csmLog(val, "VAL FOR TotalQuantity", __FILE__, __LINE__);
+            }
+            TotalQuantity = atoi(val);
+        }
+        val = strtok(NULL, ",");
+        i++;
+    }
+
+    if (strcmp(C_STOCK_MANAGER_BUILD_TYPE, "Debug") == 0) {
+        char totQuantAsStr[30];
+        sprintf(totQuantAsStr, "%d", TotalQuantity);
+        csmLog(totQuantAsStr, "TOTAL QUANTITY OF ITEM:", __FILE__, __LINE__);
+        sprintf(totQuantAsStr, "%d", quantity);
+        csmLog(totQuantAsStr, "QUANTITY SOLD OF ITEM:", __FILE__, __LINE__);
+    }
+
+    if (opt == sale) {
+       FILE *registerWriter = fopen(pathToRegister, "a"); 
+       if (registerWriter == NULL) {
+           fprintf(stderr, "Unable to open file: %s", pathToRegister);
+           exit(1);
+       }
+
+       char toWrite[150];
+       sprintf(toWrite, "Sale,%s,%d,%.2lf,%2.lf,\n", productIndex,quantity, price, price*quantity);
+
+       fputs(toWrite, registerWriter);
+
+       fclose(registerWriter);
+
+       char newQuantAsStr[30];
+       sprintf(newQuantAsStr, "%d", TotalQuantity-quantity);
+
+       stockManagementUpdate(productIndex, "Quantity", newQuantAsStr, allAttrCopy, data, pathToStockFile);
     }
     else {
-        
+        FILE *registerWriter = fopen(pathToRegister, "a");
+        if (registerWriter == NULL) {
+            fprintf(stderr, "Unable to open file: %s", pathToRegister);
+            exit(1);
+        }
+        char toWrite[150];
+        sprintf(toWrite, "Purchase,%s,%d,%lf,\n", productIndex, quantity, price);
+        fputs(toWrite, registerWriter);
+
+        fclose(registerWriter);
+
+        char newQuantAsStr[30];
+        sprintf(newQuantAsStr, "%d", TotalQuantity+quantity);
+
+        stockManagementUpdate(productIndex, "Quantity", newQuantAsStr, allAttrCopy, data, pathToStockFile);
     }
-    return;
+
+    free(dataCopy);
 }
 
 void stockManagementRead(char* pathToFile, char **data, unsigned long long *i, unsigned long long *sizeOfData){
@@ -132,7 +239,7 @@ void stockManagementDelete(char *productIndex, char *data, char *pathToFile) {
 
    bool indexExistent = false;
    while (row != NULL){
-       if (strlen(productIndex)-1 == strcspn(row, ",") && strncmp(productIndex, row, strcspn(row, ",")) == 0){
+       if (strlen(productIndex) == strcspn(row, ",") && strncmp(productIndex, row, strcspn(row, ",")) == 0){
            indexExistent = true;
            row = strtok(NULL, "\n");
            continue;
@@ -182,7 +289,7 @@ void stockManagementGet(char* index, char* out, unsigned long lengthOut, char* d
    char *row = strtok(dataCopy, "\n");
 
    while (row != NULL){
-       if (strlen(index)-1 == strcspn(row, ",") && strncmp(index, row, strcspn(row, ",")) == 0){ 
+       if (strlen(index) == strcspn(row, ",") && strncmp(index, row, strcspn(row, ",")) == 0){ 
            break;
        }
        row = strtok(NULL, "\n");

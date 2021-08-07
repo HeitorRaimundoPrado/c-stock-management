@@ -19,5 +19,6 @@ void csmLog(char *toWrite, char* desc, char* file, int line) {
     }
 
     fputs(toWrite, logWriter);
+    fputs("\n", logWriter);
     fclose(logWriter);
 }

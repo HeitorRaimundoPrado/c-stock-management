@@ -6,11 +6,11 @@
 #include <string.h>
 #include <stdbool.h>
 
-void stockManagementTrade(int, int, char*);
-void stockManagementRead(char*, char**, unsigned long long*, unsigned long long*);
-void stockManagementUpdate(char*, char*, char*, char*, char*, char*);
-void stockManagementDelete(char*, char*, char*);
-void stockManagementSet(char*, FILE*);
-void stockManagementGet(char*, char*, unsigned long, char*, int);
+void stockManagementTrade(int opt, int quantity, char* productIndex, char* pathToRegister, char* pathToStockFile, char* data, int sizeOfData);
+void stockManagementRead(char* pathToStockFile, char** data, unsigned long long* lengthOfData, unsigned long long* sizeOfData);
+void stockManagementUpdate(char* productIndex, char* attribute, char* newValue, char* allAttributes, char* data, char* pathToStockFile);
+void stockManagementDelete(char* productIndex, char* data, char* pathToStockFile);
+void stockManagementSet(char* newValue, FILE* writePointer);
+void stockManagementGet(char* index, char* out, unsigned long lengthOut, char* data, int sizeOfData);
 
 #endif

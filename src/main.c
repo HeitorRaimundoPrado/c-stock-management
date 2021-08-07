@@ -122,7 +122,7 @@ int main(int argc, char *argv[]) {
                 printf("Product index: ");
                 fgets(productIndex, 10, stdin);
 
-                productIndex[strlen(productIndex)] = 0;
+                productIndex[strcspn(productIndex, "\n")] = 0;
 
                 stockManagementDelete(productIndex, data, pathToCsv);
                 stockManagementRead(pathToCsv, &data, &lengthOfData, &sizeOfData);
@@ -164,6 +164,8 @@ int main(int argc, char *argv[]) {
                 printf("Product Index: ");
                 fgets(productIndex, 100, stdin);
 
+                productIndex[strcspn(productIndex, "\n")] = 0;
+
                 stockManagementGet(productIndex, output, 100, data, lengthOfData);
                 puts(output);
                 break;
@@ -184,8 +186,10 @@ int main(int argc, char *argv[]) {
 
                 printf("\nProduct Index: ");
                 fgets(productIndex, 10, stdin);
+                productIndex[strcspn(productIndex, "\n")] = 0;
 
-                stockManagementTrade(tradeOpt, quantity, productIndex);
+                stockManagementTrade(tradeOpt, quantity, productIndex, pathToTradesRegister, pathToCsv, data, sizeOfData);
+                    stockManagementRead(pathToCsv, &data, &lengthOfData, &sizeOfData);
                 break;
 
             }
