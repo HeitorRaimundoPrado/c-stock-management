@@ -5,6 +5,59 @@
 #define C_STOCK_MANAGER_BUILD_TYPE "Release"
 #endif
 
+void stockManagementPrintRow(char* row, char* attributes) {
+    char attrToPrint[100], rowToPrint[100];
+    char attrCopy[100];
+    strcpy(attrCopy, attributes);
+
+    char rowCopy[100];
+    strcpy(rowCopy, row);
+
+    char *tok = strtok(attrCopy, ",");
+
+    unsigned long max_len = 0;
+    while (tok != NULL) {
+        if (strlen(tok) > max_len) {
+            max_len = strlen(tok);
+        }
+        tok = strtok(NULL, ",");
+    }
+
+    tok = strtok(rowCopy, ",");
+    while (tok != NULL) {
+        if (strlen(tok) > max_len) {
+            max_len = strlen(tok);
+        }
+        tok = strtok(NULL, ",");
+    }
+
+    sprintf(attrToPrint, "%%%lus", max_len+3);
+    sprintf(rowToPrint, "%%%lus", max_len+3);
+    
+    if(strcmp(C_STOCK_MANAGER_BUILD_TYPE, "Debug") == 0) {
+        csmLog(attrToPrint, "FORMATTING STRING TO PRINT (ATTRIBUTES)", __FILE__, __LINE__);
+        csmLog(rowToPrint, "FORMATTING STRING TO PRINT (ROW)", __FILE__, __LINE__);
+    }
+
+    strcpy(attrCopy, attributes);
+    strcpy(rowCopy, row);
+
+    printf("\n");
+    tok = strtok(attrCopy, ",");
+    while(tok != NULL) {
+        printf(attrToPrint, tok);
+        tok = strtok(NULL, ",");
+    }
+    printf("\n");
+
+    tok = strtok(rowCopy, ",");
+    while(tok != NULL) {
+        printf(rowToPrint, tok);
+        tok = strtok(NULL, ",");
+    }
+    printf("\n");
+}
+
 void stockManagementTrade(int opt, int quantity, char* productIndex, char* pathToRegister, char* pathToStockFile, char* data, int sizeOfData) {
     enum tradeOptions {sale=1, purchase};
     char row[100];
@@ -22,7 +75,8 @@ void stockManagementTrade(int opt, int quantity, char* productIndex, char* pathT
     strcpy(allAttrCopy, allAttr);
 
     char *attr = strtok(allAttr, ",");
-    int indexOfQuantity, indexOfPrice, TotalQuantity = 0, i = 0;
+    int indexOfQuantity, indexOfPrice, i = 0;
+    long int TotalQuantity = 0;
     double price;
     while (attr != NULL) {
         if (strcmp(C_STOCK_MANAGER_BUILD_TYPE, "Debug") == 0){
@@ -56,13 +110,26 @@ void stockManagementTrade(int opt, int quantity, char* productIndex, char* pathT
             if (strcmp(C_STOCK_MANAGER_BUILD_TYPE, "Debug") == 0) {
                 csmLog(val, "VAL FOR PRICE", __FILE__, __LINE__);
             }
-            sscanf(val, "%lf", &price);
+
+            char *p;
+            price = strtod(val, &p);
+            if (*p != 0) {
+                fprintf(stderr, "Price field of product of index %s is not a number\n", productIndex);
+            }
+
         }
         else if (i == indexOfQuantity) {
             if(strcmp(C_STOCK_MANAGER_BUILD_TYPE, "Debug") == 0) {
                 csmLog(val, "VAL FOR TotalQuantity", __FILE__, __LINE__);
             }
-            TotalQuantity = atoi(val);
+
+            char *p;
+            TotalQuantity = strtol(val, &p, 10);
+
+            if (*p != 0) {
+                fprintf(stderr, "Quantity field of product of index %s is not number\n", productIndex);
+            }
+
         }
         val = strtok(NULL, ",");
         i++;
@@ -70,7 +137,7 @@ void stockManagementTrade(int opt, int quantity, char* productIndex, char* pathT
 
     if (strcmp(C_STOCK_MANAGER_BUILD_TYPE, "Debug") == 0) {
         char totQuantAsStr[30];
-        sprintf(totQuantAsStr, "%d", TotalQuantity);
+        sprintf(totQuantAsStr, "%ld", TotalQuantity);
         csmLog(totQuantAsStr, "TOTAL QUANTITY OF ITEM:", __FILE__, __LINE__);
         sprintf(totQuantAsStr, "%d", quantity);
         csmLog(totQuantAsStr, "QUANTITY SOLD OF ITEM:", __FILE__, __LINE__);
@@ -84,14 +151,14 @@ void stockManagementTrade(int opt, int quantity, char* productIndex, char* pathT
        }
 
        char toWrite[150];
-       sprintf(toWrite, "Sale,%s,%d,%.2lf,%2.lf,\n", productIndex,quantity, price, price*quantity);
+       sprintf(toWrite, "Sale,%s,%d,%.2lf,%.2lf,\n", productIndex,quantity, price, price*quantity);
 
        fputs(toWrite, registerWriter);
 
        fclose(registerWriter);
 
        char newQuantAsStr[30];
-       sprintf(newQuantAsStr, "%d", TotalQuantity-quantity);
+       sprintf(newQuantAsStr, "%ld", TotalQuantity-quantity);
 
        stockManagementUpdate(productIndex, "Quantity", newQuantAsStr, allAttrCopy, data, pathToStockFile);
     }
@@ -102,13 +169,13 @@ void stockManagementTrade(int opt, int quantity, char* productIndex, char* pathT
             exit(1);
         }
         char toWrite[150];
-        sprintf(toWrite, "Purchase,%s,%d,%lf,\n", productIndex, quantity, price);
+        sprintf(toWrite, "Purchase,%s,%d,%.2lf,%.2lf\n", productIndex, quantity, price, quantity*price);
         fputs(toWrite, registerWriter);
 
         fclose(registerWriter);
 
         char newQuantAsStr[30];
-        sprintf(newQuantAsStr, "%d", TotalQuantity+quantity);
+        sprintf(newQuantAsStr, "%ld", TotalQuantity+quantity);
 
         stockManagementUpdate(productIndex, "Quantity", newQuantAsStr, allAttrCopy, data, pathToStockFile);
     }

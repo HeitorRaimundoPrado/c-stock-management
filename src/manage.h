@@ -36,4 +36,9 @@ void stockManagementSet(char* newValue, FILE* writePointer);
  */
 void stockManagementGet(char* index, char* out, unsigned long lengthOut, char* data, int sizeOfData);
 
+/*
+ * Function to print the output of stockManagementGet
+ */
+void stockManagementPrintRow(char* row, char* attributes);
+
 #endif

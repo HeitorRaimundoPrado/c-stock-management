@@ -72,12 +72,15 @@ int main(int argc, char *argv[]) {
     }
     unsigned long long lengthOfData = 0;
     unsigned long long sizeOfData = 50;
+
     stockManagementRead(pathToCsv, &data, &lengthOfData, &sizeOfData);
+
     char *attr = malloc(lengthOfData*sizeof(char)+1);
     if (attr == NULL){
         fprintf(stderr, "Out of memory!\n");
         exit(1);
     }
+
     strcpy(attr, data);
     char *attributes = strtok(attr, "\n");
     bool q = false;
@@ -95,13 +98,11 @@ int main(int argc, char *argv[]) {
         switch(opt) {
             case update:
             {
-                // int productIndex;
                 char newValue[100], atribute[100], productIndex[10];
                 printf("Product Index: ");
                 fgets(productIndex, 10, stdin);
                 productIndex[strcspn(productIndex, "\n")] = 0;
 
-                // scanf("%d", &productIndex);
                 printf("Attribute: ");
                 fgets(atribute, 100, stdin);
                 atribute[strcspn(atribute, "\n")] = 0;
@@ -167,7 +168,13 @@ int main(int argc, char *argv[]) {
                 productIndex[strcspn(productIndex, "\n")] = 0;
 
                 stockManagementGet(productIndex, output, 100, data, lengthOfData);
-                puts(output);
+                if (strcmp(output, "Index inexistent") == 0) {
+                    puts(output);
+                }
+                else {
+                    stockManagementPrintRow(output, attributes);
+                }
+
                 break;
             }
 
@@ -176,7 +183,7 @@ int main(int argc, char *argv[]) {
                 char productIndex[10];
                 int tradeOpt, quantity;
 
-                printf("\n1. Sale\n2. Purchase\n");
+                printf("\n1. Sale\n2. Purchase\n\n");
                 fgets(productIndex, 10, stdin);
                 sscanf(productIndex, "%d", &tradeOpt);
 
@@ -184,12 +191,12 @@ int main(int argc, char *argv[]) {
                 fgets(productIndex, 10, stdin);
                 sscanf(productIndex, "%d", &quantity);
 
-                printf("\nProduct Index: ");
+                printf("Product Index: ");
                 fgets(productIndex, 10, stdin);
                 productIndex[strcspn(productIndex, "\n")] = 0;
 
                 stockManagementTrade(tradeOpt, quantity, productIndex, pathToTradesRegister, pathToCsv, data, sizeOfData);
-                    stockManagementRead(pathToCsv, &data, &lengthOfData, &sizeOfData);
+                stockManagementRead(pathToCsv, &data, &lengthOfData, &sizeOfData);
                 break;
 
             }
@@ -201,6 +208,7 @@ int main(int argc, char *argv[]) {
             }
         }
     }
+
     free(attributes);
     free(data);
     return 0;
